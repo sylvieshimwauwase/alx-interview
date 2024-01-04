@@ -2,6 +2,10 @@
 """function that returns a list of lists of integers in Pascal's triangle"""
 
 def pascal_triangle(n):
+    """
+    returning list of integers
+    using pascal's triangle
+    """
     if n <= 0:
         return []
     
