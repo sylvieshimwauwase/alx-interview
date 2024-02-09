@@ -4,6 +4,23 @@
 import sys
 
 
+def print_board(board):
+    """ print_board
+    Args:
+        board - list of list with length sys.argv[1]
+    """
+    new_list = []
+    for i, row in enumerate(board):
+        value = []
+        for j, col in enumerate(row):
+            if col == 1:
+                value.append(i)
+                value.append(j)
+        new_list.append(value)
+
+    print(new_list)
+
+
 def is_safe(board, row, col, n):
     """checking if placing a queen is safe
     Args:
@@ -13,22 +30,22 @@ def is_safe(board, row, col, n):
     n: size of the board
     """
 
-    for i in range(row):
-        if board[i][col] == 1:
+    for i in range(col):
+        if board[row][i] == 1:
             return False
 
     for i, j in zip(range(row, -1, -1), range(col,  -1, -1)):
         if board[i][j] == 1:
             return False
 
-    for i, j in zip(range(row, -1, -1), range(col, n)):
+    for i, j in zip(range(row, n, 1), range(col, -1, -1)):
         if board[i][j] == 1:
             return False
 
     return True
 
 
-def solve_n_queens_util(board, row, n, solutions):
+def solve_n_queens_util(board, col, n):
     """Recursive utility functions
     Args:
     board: current state of the chessboard
@@ -37,16 +54,21 @@ def solve_n_queens_util(board, row, n, solutions):
     n: size of the board
     """
 
-    if row == n:
-        solutions.append(["".join(["Q" if cell == 1 else "." for cell in row])
-                          for row in board])
-        return
+    if (col == n):
+        print_board(board)
+        return True
+    res = False
+    for i in range(n):
 
-    for col in range(n):
-        if is_safe(board, row, col, n):
-            board[row][col] = 1
-            solve_n_queens_util(board, row + 1, n, solutions)
-            board[row][col] = 0
+        if (is_safe(board, i, col, n)):
+
+            board[i][col] = 1
+
+            res = solve_n_queens_util(board, col + 1, n) or res
+
+            board[i][col] = 0  # BACKTRACK
+
+    return res
 
 
 def solve_n_queens(n):
@@ -54,30 +76,38 @@ def solve_n_queens(n):
     Args:
     n(str): size of the board
     """
-    if not n.isdigit():
-        raise ValueError("N must be a number")
+    board = [[0 for i in range(n)]for i in range(n)]
 
-    n = int(n)
-    if n < 4:
-        raise ValueError("N must be at least 4")
+    if not solve_n_queens_util(board, 0, n):
+        return False
 
-    board = [[0] * n for _ in range(n)]
-    solutions = []
-    solve_n_queens_util(board, 0, n, solutions)
+    return True
 
-    for sol in solutions:
-        for row in sol:
-            print(row)
-        print()
+
+def validate(args):
+    """ Validate the input data to verify if the size to
+        answer is posible
+    Args:
+        args - sys.argv
+    """
+    if (len(args) == 2):
+        try:
+            number = int(args[1])
+        except Exception:
+            print("N must be a number")
+            exit(1)
+        if number < 4:
+            print("N must be at least 4")
+            exit(1)
+        return number
+    else:
+        print("Usage: nqueens N")
+        exit(1)
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("Usage: nqueens N")
-        sys.exit(1)
+    """ Main method to execute the application
+    """
 
-    try:
-        solve_n_queens(sys.argv[1])
-    except ValueError as e:
-        print(e)
-        sys.exit(1)
+    number = validate(sys.argv)
+    solve_n_queens(number)
