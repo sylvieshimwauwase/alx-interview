@@ -1,0 +1,1 @@
+this is a folder containing project about Star Wars API in Javascript
