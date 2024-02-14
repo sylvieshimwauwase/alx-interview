@@ -1,50 +1,31 @@
 #!/usr/bin/node
+// Script that prints all characters of a Star Wars movie
 
-const fetch = require('node-fetch');
+const request = require('request');
 
-async function getCharacters(movieId) {
-    try {
-        // Fetching movie data
-        const movieUrl = `https://swapi.dev/api/films/${movieId}/`;
-        const movieResponse = await fetch(movieUrl);
-        if (!movieResponse.ok) {
-            throw new Error('Error fetching movie data.');
+const movieId = process.argv[2];
+
+request(`https://swapi.dev/api/films/${movieId}/`, (error, response, body) => {
+  if (error) {
+    console.error('Error:', error);
+  } else if (response.statusCode !== 200) {
+    console.error('Status:', response.statusCode);
+  } else {
+    const movie = JSON.parse(body);
+    const characters = movie.characters;
+
+    characters.forEach((characterUrl) => {
+      request(characterUrl, (error, response, body) => {
+        if (error) {
+          console.error('Error:', error);
+        } else if (response.statusCode !== 200) {
+          console.error('Status:', response.statusCode);
+        } else {
+          const character = JSON.parse(body);
+          console.log(character.name);
         }
+      });
+    });
+  }
+});
 
-        const movieData = await movieResponse.json();
-        const charactersUrls = movieData.characters;
-
-        // Fetching character names
-        const characters = [];
-        for (const url of charactersUrls) {
-            const response = await fetch(url);
-            if (!response.ok) {
-                console.log(`Error fetching character data from ${url}`);
-            } else {
-                const characterData = await response.json();
-                characters.push(characterData.name);
-            }
-        }
-        return characters;
-    } catch (error) {
-        console.error(error.message);
-        return [];
-    }
-}
-
-async function main() {
-    const args = process.argv.slice(2);
-    if (args.length !== 1) {
-        console.log('Usage: node script.js <Movie ID>');
-        process.exit(1);
-    }
-
-    const movieId = args[0];
-    const characters = await getCharacters(movieId);
-
-    if (characters.length > 0) {
-        characters.forEach(character => console.log(character));
-    }
-}
-
-main();
